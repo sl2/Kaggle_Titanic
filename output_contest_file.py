@@ -208,6 +208,8 @@ if __name__ == '__main__':
 
     # Get train data.
     feature, label = get_titanic_train(data,True)
+    print "Number of feature vectors:", len(data)
+    print "Number of valid feature vectors:", len(feature)
 
     # Create test data from train data.
     train_count = 600 # Number of train data
@@ -223,13 +225,13 @@ if __name__ == '__main__':
             #n_jobs=1
         )
     assert len(train['feature']) == len(train['label'])
-    print "Train Data:", len(train['feature'])
+    print "Number of train data:", len(train['feature'])
     clf.fit(train['feature'], train['label'])
     print get_score(train['feature'], train['label'])
     print "Feature importances:", clf.feature_importances_
 
     # Predict the label(answer) of test data
-    print "Test Data:", len(test['feature'])
+    print "Number of test data:", len(test['feature'])
     predict = get_predict(test['feature'], clf)
     print "Summary of labels:", count_labels(predict)
     print get_result(predict, test['label'])
@@ -250,6 +252,8 @@ if __name__ == '__main__':
                 bootstrap=True
             )
         assert len(feature) == len(label)
+
+        print "Number of train data:", len(feature)
         clf1.fit(feature, label)
         print i, get_score(feature, label)
         print "Feature importances:", clf1.feature_importances_
