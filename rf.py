@@ -1,4 +1,12 @@
 #coding: utf-8
+
+# Kaggle Titanic
+# Sample code for "Titanic: Machine Learning from Disaster" contest of Kaggle
+#   - elementary prediction by random forest
+#
+# MIT Licensec, 2013 so
+#
+
 import numpy as np
 import csv as csv
 import logging
@@ -9,6 +17,9 @@ from collections import Counter
 from datetime import datetime
 
 
+"""
+Read header and rows from csv that is provided by Kaggle.
+"""
 def read_titled_csv(filepath):
     csv_file = csv.reader(open(filepath,'rb'))
     header = csv_file.next()
@@ -18,9 +29,12 @@ def read_titled_csv(filepath):
     return header, np.array(data)
 
 """
-delete [True|False] :Delete rows that has empty fields.
+Get feature vectors and labels from result of read_titled_csv(). 
+
+Option:
+    (Bool) remove_empty: Remove rows that has empty fields.
 """
-def get_titanic_train(data, delete):
+def get_titanic_train(data, remove_empty):
     """ 
     0:'PassengerId'
     1:'Survived'
@@ -41,7 +55,7 @@ def get_titanic_train(data, delete):
     feature = []
     label = []
 
-    if delete:
+    if remove_empty: # remove
         for row in data:
             if row[5] != '' and row[11] != '':
                 row[4] = sex[row[4]]
@@ -111,7 +125,7 @@ def get_titanic_contest(data):
     return feature
 
 # Split Train Data to Train Data and Test Data
-def get_train_test(feature, label, train_count, test_count):
+def create_test_data(feature, label, train_count, test_count):
     train = {
         'feature':feature[0:train_count],
         'label':label[0:train_count]
@@ -146,6 +160,8 @@ def get_result(predict, label):
     ratio = (correct / float(correct + incorrect)) * 100
     return {"correct:":correct, "incorrect":incorrect, "ratio":ratio}
 
+def count_labels(predicted_data):
+    return Counter(predicted_data).most_common()
 
 def visualize(feature, label):
     survival_no = []
@@ -184,15 +200,19 @@ def visualize(feature, label):
 
 
 if __name__ == '__main__':
+    # Read csv file.
     train_file = './train/train.csv'
     header, data = read_titled_csv(train_file)
 
+    # Get train data.
     feature, label = get_titanic_train(data,True)
 
-    train_count = 600
-    test_count = 100
-
-    train, test = get_train_test(feature, label, train_count, test_count)
+    # Create test data from train data.
+    train_count = 600 # Number of train data
+    test_count = 100 # Number of test data
+    train, test = create_test_data(feature, label, train_count, test_count)
+    
+    # Define Ramdom Forest Classifier
     clf = RandomForestClassifier(
             n_estimators=100, 
             max_features=None, 
@@ -206,49 +226,61 @@ if __name__ == '__main__':
     print get_score(train['feature'], train['label'])
     print clf.feature_importances_
 
+    # Predict the label(answer) of test data
     print "Test Data:", len(test['feature'])
     predict = get_predict(test['feature'], clf)
-    print Counter(predict).most_common()
+    print count_labels(predict)
     print get_result(predict, test['label'])
+    
+    # Visualize
     #visualize(train['feature'], train['label'])
     #visualize(test['feature'], test['label'])
 
 
+    # Predict the label(answer) of contest data N times.
     result_list = []
-    for i in range(1):
+    PREDICT_TIMES = 9
+    for i in range(PREDICT_TIMES):
+        # Define classifier
         clf1 = RandomForestClassifier(
                 n_estimators=100,
                 max_features=None, 
                 bootstrap=True
             )
-        
         assert len(feature) == len(label)
         clf1.fit(feature, label)
         print i, get_score(feature, label)
         #print clf1.feature_importances_
 
+        # Read contest data
         contest_file = './test/test.csv'
         contest_header, contest_data = read_titled_csv(contest_file)
         contest_feature = get_titanic_contest(contest_data)
+        
+        # Predict contest data
         contest_predict = get_predict(contest_feature,clf1)
         assert len(contest_predict) == len(contest_data)
 
-        print Counter(contest_predict).most_common()
+        # Count number of each label 
+        print count_labels(contest_predict)
         result_list.append(contest_predict)
 
     result_list_summary = []
     for i in range(len(contest_predict)):  
-        a = Counter([x[i] for x in result_list]).most_common()
-        print a
-        result_list_summary.append(a)
+        label_sum = count_labels([x[i] for x in result_list])
+        #if len(label_sum)>1:
+        #    print "Need majority vote:", label_sum
+        result_list_summary.append(label_sum)
 
+    # Output csv file for contest
     d = datetime.now()
     dt = d.strftime('%Y%m%d_%H%M%S')
-    f = open('./result/result_'+ dt +'.txt', 'w')
-    f.write("passengerId,Survived\n")
+    output_file = './result/result_'+ dt +'.txt'
+    f = open(output_file, 'w')
+    f.write("passengerId, Survived\n") # Contest require a header row.
     for i in range(len(contest_data)):
         passengerid = str(contest_data[i][0])
-        survived = str(result_list_summary[i][0][0])
+        survived = str(result_list_summary[i][0][0]) #Decide by majority vote
         line = passengerid + "," + survived + "\n"
         f.write(line)
 
