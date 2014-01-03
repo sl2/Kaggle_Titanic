@@ -27,7 +27,7 @@ Elementary sample code for "Titanic: Machine Learning from Disaster" contest of 
     
 ### Accuracy
 
-- About 72 - 73%
+- About 74-75%
     - Current top accuracy is over 90%.
 
 ### Algorithm
