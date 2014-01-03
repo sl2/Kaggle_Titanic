@@ -200,6 +200,8 @@ def visualize(feature, label):
 
 
 if __name__ == '__main__':
+    print "Test..."
+
     # Read csv file.
     train_file = './train/train.csv'
     header, data = read_titled_csv(train_file)
@@ -224,20 +226,20 @@ if __name__ == '__main__':
     print "Train Data:", len(train['feature'])
     clf.fit(train['feature'], train['label'])
     print get_score(train['feature'], train['label'])
-    print clf.feature_importances_
+    print "Feature importances:", clf.feature_importances_
 
     # Predict the label(answer) of test data
     print "Test Data:", len(test['feature'])
     predict = get_predict(test['feature'], clf)
-    print count_labels(predict)
+    print "Summary of labels:", count_labels(predict)
     print get_result(predict, test['label'])
     
     # Visualize
-    #visualize(train['feature'], train['label'])
-    #visualize(test['feature'], test['label'])
-
+    # visualize(train['feature'], train['label'])
+    # visualize(test['feature'], test['label'])
 
     # Predict the label(answer) of contest data N times.
+    print "\nCreat contest file..."
     result_list = []
     PREDICT_TIMES = 9
     for i in range(PREDICT_TIMES):
@@ -250,7 +252,7 @@ if __name__ == '__main__':
         assert len(feature) == len(label)
         clf1.fit(feature, label)
         print i, get_score(feature, label)
-        #print clf1.feature_importances_
+        print "Feature importances:", clf1.feature_importances_
 
         # Read contest data
         contest_file = './test/test.csv'
@@ -262,7 +264,7 @@ if __name__ == '__main__':
         assert len(contest_predict) == len(contest_data)
 
         # Count number of each label 
-        print count_labels(contest_predict)
+        print "Summary of labels", count_labels(contest_predict)
         result_list.append(contest_predict)
 
     result_list_summary = []
@@ -283,7 +285,7 @@ if __name__ == '__main__':
         survived = str(result_list_summary[i][0][0]) #Decide by majority vote
         line = passengerid + "," + survived + "\n"
         f.write(line)
-
+    print "Output:" + output_file 
 
 
 
