@@ -18,7 +18,7 @@ def read_titled_csv(filepath):
     return header, np.array(data)
 
 """
-delete True|False 
+delete [True|False] :Delete rows that has empty fields.
 """
 def get_titanic_train(data, delete):
     """ 
