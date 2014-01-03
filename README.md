@@ -1,4 +1,4 @@
-# Kaggle - Titanic: Machine Learning from Disaster
+# Sample code for the Titanic contest of Kaggle.
 
 Elementary sample code for "Titanic: Machine Learning from Disaster" contest of Kaggle. 
 
