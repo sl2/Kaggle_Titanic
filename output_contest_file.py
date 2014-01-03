@@ -207,7 +207,8 @@ if __name__ == '__main__':
     header, data = read_titled_csv(train_file)
 
     # Get train data.
-    feature, label = get_titanic_train(data,True)
+    #feature, label = get_titanic_train(data,True)
+    feature, label = get_titanic_train(data,False)
     print "Number of feature vectors:", len(data)
     print "Number of valid feature vectors:", len(feature)
 
@@ -226,6 +227,7 @@ if __name__ == '__main__':
         )
     assert len(train['feature']) == len(train['label'])
     print "Number of train data:", len(train['feature'])
+    print "Number of test data:", len(test['feature'])
     clf.fit(train['feature'], train['label'])
     print get_score(train['feature'], train['label'])
     print "Feature importances:", clf.feature_importances_
@@ -281,18 +283,14 @@ if __name__ == '__main__':
     # Output csv file for contest
     d = datetime.now()
     dt = d.strftime('%Y%m%d_%H%M%S')
-    output_file = './result/result_'+ dt +'.txt'
+    output_file = './result/result_'+ dt +'.csv'
     f = open(output_file, 'w')
-    f.write("passengerId, Survived\n") # Contest require a header row.
+    f.write("passengerId,Survived\n") # Contest require a header row.
     for i in range(len(contest_data)):
         passengerid = str(contest_data[i][0])
         survived = str(result_list_summary[i][0][0]) #Decide by majority vote
         line = passengerid + "," + survived + "\n"
         f.write(line)
     print "Output:" + output_file 
-
-
-
-
 
 
