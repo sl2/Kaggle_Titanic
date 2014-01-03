@@ -17,7 +17,7 @@ Elementary sample code for "Titanic: Machine Learning from Disaster" contest of 
 2. Execute
 
         cd Kaggle_Titanic
-        python output_contest_file
+        python output_contest_file.py
 
 3. Submit to Kaggle
 
