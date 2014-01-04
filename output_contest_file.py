@@ -20,6 +20,9 @@ from datetime import datetime
 
 SEX = {'female':0,'male':1}
 EMBARKED = {'C':0,'Q':1,'S':2, '':-1}
+N_ESTIMATORS = 1000
+PREDICT_TIMES = 10
+
 
 """
 Read header and rows from csv that is provided by Kaggle.
@@ -84,10 +87,27 @@ def format_titanic_contest(data):
 # feature : [[FV_1 = Pclass, Sex, Age, SibSp, Parch, fare, Embarked],...,[FV_N]]
 # label : [label_1,...,label_N]
 
-# Fill empty age by average age
+def add_family(feature):
+    _feature = []
+    for x in feature:
+        if int(x[3])+int(x[4]) > 0:
+            family = 1
+        else:
+            family = 0
+        x.append(family)
+        _feature.append(x)
+    return _feature
+
+def reduce_SibSp_Parch(feature):
+    _feature = []
+    for x in feature:
+        a = x[0:3] + x[5:]
+        _feature.append(a)
+    return _feature
+
 def fill_empty_age(feature):
     age_list = [float(x[2]) for x in feature if x[2] != '']
-    average_age = float(sum(age_list)) / float(len(age_list))
+    average_age = int(float(sum(age_list)) / float(len(age_list)))
     _feature = [] 
     for x in feature:
         if x[2] == '':
@@ -129,8 +149,8 @@ def convert_to_num(feature):
 def predict_empty_age(feature):
     # Define Ramdom Forest Regressor
     rgr = RandomForestRegressor(
-            n_estimators=1000,
-            max_features=None, 
+            n_estimators=N_ESTIMATORS,
+            #max_features=None, 
             bootstrap=True
         )
     train = []
@@ -154,7 +174,7 @@ def predict_empty_age(feature):
     predict = []
     for i, x in enumerate(test):
         age = rgr.predict(x)
-        a = x[0:2] + [age[0]] + x[2:]
+        a = x[0:2] + [int(age[0])] + x[2:]
         predict.append(a)
 
     test_dic = dict(zip(test_index,predict))
@@ -263,7 +283,8 @@ if __name__ == '__main__':
     feature = fill_empty_embarked(feature)
     feature = fill_empty_fare(feature)
     feature = predict_empty_age(feature)
-    
+    feature = add_family(feature) 
+    feature = reduce_SibSp_Parch(feature)
     _feature = []
     for x in feature:
         _feature.append([float(y) for y in x])
@@ -279,8 +300,8 @@ if __name__ == '__main__':
  
     # Define Ramdom Forest Classifier
     clf = RandomForestClassifier(
-            n_estimators=1000,
-            max_features=None, 
+            n_estimators=N_ESTIMATORS,
+            #max_features=None, 
             bootstrap=True
             #n_jobs=1
         )
@@ -304,11 +325,10 @@ if __name__ == '__main__':
     # Predict the label(answer) of contest data N times.
     print "\nCreat contest file..."
     result_list = []
-    PREDICT_TIMES = 5
     for i in range(PREDICT_TIMES):
         # Define classifier
         clf1 = RandomForestClassifier(
-                n_estimators=1000,
+                n_estimators=N_ESTIMATORS,
                 max_features=None, 
                 bootstrap=True
             )
@@ -326,8 +346,9 @@ if __name__ == '__main__':
         contest_feature = convert_to_num(contest_feature)
         contest_feature = fill_empty_embarked(contest_feature)
         contest_feature = fill_empty_fare(contest_feature)
-        contest_feature = predict_empty_age(contest_feature)    
-        
+        contest_feature = predict_empty_age(contest_feature)
+        contest_feature = add_family(contest_feature)
+        contest_feature = reduce_SibSp_Parch(contest_feature) 
         _contest_feature = []
         for x in contest_feature:
             _contest_feature.append([float(y) for y in x])
