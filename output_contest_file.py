@@ -1,11 +1,9 @@
 #coding: utf-8
-
 # Kaggle Titanic
 # Sample code for "Titanic: Machine Learning from Disaster" contest of Kaggle
 #   - elementary prediction by random forest
 #
 # MIT Licensec, 2013 so
-
 
 import numpy as np
 import csv as csv
@@ -16,13 +14,16 @@ from sklearn.cross_validation import cross_val_score
 import pylab as pl
 from collections import Counter
 from datetime import datetime
+import sys
 
 
 SEX = {'female':0,'male':1}
 EMBARKED = {'C':0,'Q':1,'S':2, '':-1}
 N_ESTIMATORS = 1000
-PREDICT_TIMES = 10
-
+PREDICT_TIMES = 5
+train_count = 400 # Number of train data
+test_count = 300 # Number of test data
+VALID_SCORE = 78
 
 """
 Read header and rows from csv that is provided by Kaggle.
@@ -195,7 +196,6 @@ def predict_empty_age(feature):
 def predict_empty_embarked(feature):
     return feature
 
-
 # Split Train Data to Train Data and Test Data
 def create_test_data(feature, label, train_count, test_count):
     train = {
@@ -282,6 +282,7 @@ if __name__ == '__main__':
     feature = convert_to_num(feature)
     feature = fill_empty_embarked(feature)
     feature = fill_empty_fare(feature)
+    #feature = fill_empty_age(feature)
     feature = predict_empty_age(feature)
     feature = add_family(feature) 
     feature = reduce_SibSp_Parch(feature)
@@ -294,20 +295,17 @@ if __name__ == '__main__':
     print "Number of valid feature vectors:", len(feature)
 
     # Create test data from train data.
-    train_count = 600 # Number of train data
-    test_count = 100 # Number of test data
     train, test = create_test_data(feature, label, train_count, test_count)
  
     # Define Ramdom Forest Classifier
     clf = RandomForestClassifier(
             n_estimators=N_ESTIMATORS,
-            #max_features=None, 
+            max_features=None, 
             bootstrap=True
             #n_jobs=1
         )
     assert len(train['feature']) == len(train['label'])
     print "Number of train data:", len(train['feature'])
-    print "Number of test data:", len(test['feature'])
     clf.fit(train['feature'], train['label'])
     print get_score(train['feature'], train['label'])
     print "Feature importances:", clf.feature_importances_
@@ -316,11 +314,16 @@ if __name__ == '__main__':
     print "Number of test data:", len(test['feature'])
     predict = get_predict(test['feature'], clf)
     print "Summary of labels:", count_labels(predict)
-    print get_result(predict, test['label'])
-    
+    test_result = get_result(predict, test['label'])
+    print test_result
+
     # Visualize
     #visualize(train['feature'], train['label'])
     #visualize(test['feature'], test['label'])
+
+    if test_result["correct ratio"] < VALID_SCORE:
+        print "Exit."
+        sys.exit()
 
     # Predict the label(answer) of contest data N times.
     print "\nCreat contest file..."
@@ -346,6 +349,7 @@ if __name__ == '__main__':
         contest_feature = convert_to_num(contest_feature)
         contest_feature = fill_empty_embarked(contest_feature)
         contest_feature = fill_empty_fare(contest_feature)
+        #contest_feature = fill_empty_age(contest_feature)
         contest_feature = predict_empty_age(contest_feature)
         contest_feature = add_family(contest_feature)
         contest_feature = reduce_SibSp_Parch(contest_feature) 
@@ -353,9 +357,6 @@ if __name__ == '__main__':
         for x in contest_feature:
             _contest_feature.append([float(y) for y in x])
         contest_feature = _contest_feature
-
-
-
 
         # Predict contest data
         contest_predict = get_predict(contest_feature,clf1)
